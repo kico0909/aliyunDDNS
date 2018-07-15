@@ -1,10 +1,14 @@
 {
   "appid": "LTAIP0T47hNPvDVz",
   "appsecret": "gcTAoNHXUpjjB4eKb8ZzOhjI6mdfl9",
-  "ddnsProfile": [
+  "DdnsConf": [
     {
       "Domain": "chunkding.com",
       "RR": "home"
+    },
+    {
+      "Domain": "chunkding.com",
+      "RR": "router"
     }
   ]
 }

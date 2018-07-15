@@ -18,40 +18,49 @@ func main() {
 	// 获得外网IP
 	IP := ip.External()
 
-	// 获得域名解析信息
-	res := domain.DomainRecordsInfo("chunkding.com")
+	for _, info := range conf.DdnsConf {
+		// 获得域名解析信息
+		res := domain.DomainRecordsInfo(info.Domain)
 
-	// 查找指定域名的解析ID
-	recordID := ""
-	for _,v := range res.DomainRecords.Record {
-		if v.RR == conf.DdnsProfile[0].RR {
-			if v.Value != IP {
-				recordID = v.RecordId
-			}else{
-				log.Println("域名指向IP未改变,无需重新解析!")
+		// 查找指定域名的解析ID
+		recordID := ""
+		for _,v := range res.DomainRecords.Record {
+			if v.RR == info.RR {
+				if v.Value != IP {
+					recordID = v.RecordId
+				}else{
+					log.Println("域名["+info.Domain+"]指向IP未改变,无需重新解析!")
+					goto STOPTHIS
+				}
+				break
 			}
-			break
 		}
+
+		if len(recordID)>0{
+			// 修改域名解析记录
+			if domain.UpdateDomainRecord(info.RR, recordID, IP) {
+				log.Println("[" + info.RR + "." + info.Domain+"] 更新成功!")
+			}else{
+				log.Println("[" + info.RR + "." + info.Domain+"] 更新失败!")
+			}
+		}else{
+
+			log.Println("[" + info.RR + "." + info.Domain+"] 的解析记录未找到!")
+		}
+		STOPTHIS:
 	}
 
-	if len(recordID)>0{
-		// 修改域名解析记录
-		if domain.UpdateDomainRecord(conf.DdnsProfile[0].RR, recordID, IP) {
-			log.Println("dns update success!")
-		}else{
-			log.Println("dns update fail!")
-		}
-	}
+
 
 }
 
 type ConfigType struct {
 	Appid string
 	Appsecret string
-	DdnsProfile []configTypeChip
+	DdnsConf []configTypeChip
 }
 type configTypeChip struct {
-	DDNSDomain string
+	Domain string
 	RR string
 }
 func configGet()ConfigType{
