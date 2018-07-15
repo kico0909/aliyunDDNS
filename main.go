@@ -29,7 +29,7 @@ func main() {
 				if v.Value != IP {
 					recordID = v.RecordId
 				}else{
-					log.Println("域名["+info.Domain+"]指向IP未改变,无需重新解析!")
+					log.Println("域名[" + info.RR + "." + info.Domain+"]指向IP未改变,无需重新解析!")
 					goto STOPTHIS
 				}
 				break
