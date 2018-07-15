@@ -1,0 +1,2 @@
+# aliyunDDNS
+利用阿里云DNS解析为LEDE路由器创建DNS动态解析
