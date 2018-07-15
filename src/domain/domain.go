@@ -6,11 +6,15 @@ import (
 	"strconv"
 	"net/http"
 	"io/ioutil"
-	"ChunkLib/codeHandler"
 	"sort"
 	"strings"
 	"net/url"
 	"encoding/json"
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/base64"
+	"crypto/md5"
+	"encoding/hex"
 )
 
 const host string = "http://alidns.aliyuncs.com";
@@ -196,7 +200,10 @@ func sortKeys(params map[string]string)[]string{
 
 // 生成无序子串
 func makeSignatureNonce ()string{
-	return codeHandler.MD5( strconv.FormatInt(time.Now().UnixNano(), 10))
+	tmp := md5.New()
+	tmp.Write([]byte(strconv.FormatInt(time.Now().UnixNano(), 10)))
+	MD5Str := tmp.Sum(nil)
+	return hex.EncodeToString(MD5Str)
 }
 
 // 制作GETUrl
@@ -212,5 +219,9 @@ func makeUrl(keys []string, params map[string]string) string {
 // 生成SIGN
 func makeSign (path, secrt string)string{
 	StringToSign := "GET&"+ url.QueryEscape("/")+"&" + url.QueryEscape( path)
-	return codeHandler.HMAC_SHA1(StringToSign, secrt+"&")
+	mac := hmac.New(sha1.New, []byte(secrt+"&"))
+	mac.Write([]byte(StringToSign))
+	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
+
+
 }
