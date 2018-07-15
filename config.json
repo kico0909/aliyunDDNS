@@ -1,6 +1,10 @@
-[
-  {
-    "DDNSDomain": "chunkding.com",
-    "RR": "home"
-  }
-]
+{
+  "appid": "LTAIP0T47hNPvDVz",
+  "appsecret": "gcTAoNHXUpjjB4eKb8ZzOhjI6mdfl9",
+  "ddnsProfile": [
+    {
+      "Domain": "chunkding.com",
+      "RR": "home"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "appid": "testid",
+  "appsecret": "testSecret",
+  "ddnsProfile": [
+    {
+      "Domain": "domain.com",
+      "RR": "name"
+    }
+  ]
+}

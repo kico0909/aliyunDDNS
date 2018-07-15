@@ -4,20 +4,16 @@ import (
 	"log"
 	"ip"
 	"domain"
-	"config"
-)
-
-const (
-	appsecrt string = "gcTAoNHXUpjjB4eKb8ZzOhjI6mdfl9"
-	appid string = "LTAIP0T47hNPvDVz"
+	"io/ioutil"
+	"encoding/json"
 )
 
 func main() {
-	// 创建阿里云解析类
-	domain := domain.New(appid, appsecrt)
-
 	// 获得配置信息
-	conf := config.Get()
+	conf := configGet()
+
+	// 创建阿里云解析类
+	domain := domain.New(conf.Appid, conf.Appsecret)
 
 	// 获得外网IP
 	IP := ip.External()
@@ -28,7 +24,7 @@ func main() {
 	// 查找指定域名的解析ID
 	recordID := ""
 	for _,v := range res.DomainRecords.Record {
-		if v.RR == conf[0].RR {
+		if v.RR == conf.DdnsProfile[0].RR {
 			if v.Value != IP {
 				recordID = v.RecordId
 			}else{
@@ -40,23 +36,34 @@ func main() {
 
 	if len(recordID)>0{
 		// 修改域名解析记录
-		if domain.UpdateDomainRecord(conf[0].RR, recordID, IP) {
+		if domain.UpdateDomainRecord(conf.DdnsProfile[0].RR, recordID, IP) {
 			log.Println("dns update success!")
 		}else{
 			log.Println("dns update fail!")
 		}
 	}
 
+}
 
+type ConfigType struct {
+	Appid string
+	Appsecret string
+	DdnsProfile []configTypeChip
+}
+type configTypeChip struct {
+	DDNSDomain string
+	RR string
+}
+func configGet()ConfigType{
+	var res ConfigType
+	fc, err := ioutil.ReadFile("./config.json")
 
+	if err != nil {
+		log.Panicln(err)
+	}
 
+	json.Unmarshal(fc, &res)
 
-
-
-
-	//log.Println(res)
-	//log.Println(os.Args)
-	//log.Println(os.Getpid())
-	
+	return res
 
 }
