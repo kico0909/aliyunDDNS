@@ -6,14 +6,15 @@ import (
 	"io/ioutil"
 	"ip"
 	"log"
-	"os"
 	"time"
 	"strconv"
+	"mylog"
 )
 
 const (
-	RunLog        = "./runLog.txt"
-	RunLogMaxSize = 4096
+	LogDir = "./log/"
+	LogFileName = "log"
+	RunLogMaxSize = 1024 * 1024
 )
 
 func main() {
@@ -23,35 +24,26 @@ func main() {
 	// 创建阿里云解析类
 	domain := domain.New(conf.Appid, conf.Appsecret)
 
-	var f *os.File
+	// 设置日志的单文件尺寸
+	mylog.SetLogMaxSize( RunLogMaxSize )
 
-	RunLogfileSize, err := os.Stat(RunLog)
-	if err != nil {
-		f, err = os.OpenFile(RunLog, os.O_CREATE|os.O_RDWR, 0777)
-	} else {
-		if RunLogfileSize.Size() > RunLogMaxSize {
-			f, err = os.OpenFile(RunLog, os.O_TRUNC|os.O_RDWR, 0777)
-		} else {
-			f, err = os.OpenFile(RunLog, os.O_RDWR|os.O_APPEND, 0777)
-		}
-	}
-	if err != nil {
-		log.Println(err)
-		os.Exit(99)
-	}
-	defer f.Close()
-	f.WriteString(time.Now().Format("2006-01-02 15:04:05") + " 触发更新!\r\n")
+	// 设置日志位置
+	mylog.SetLogPath( LogDir, LogFileName )
+
+	// 启动日志
+	mylog.LogStart()
+
+	nowDate := time.Now().Format("\r\n 2006-01-02 15:04:05")
+
+	mylog.Record( nowDate + " 触发更新!\r\n" )
 
 	// 获得外网IP
 	IP := ip.External()
 
-	f.WriteString("\t当前解析IP[" +IP+"]\r\n")
-
-	f.WriteString("\t配置文件长度 [ "+strconv.FormatInt(int64(len(conf.DdnsConf)), 10)+" ]\r\n")
+	mylog.Record("\t当前解析IP[" +IP+"]\r\n\t配置文件长度 [ "+strconv.FormatInt(int64(len(conf.DdnsConf)), 10)+" ]\r\n")
 
 	for _, info := range conf.DdnsConf {
 
-		//f.WriteString("\t当前解析IP[" +IP+"]\r\n")
 
 		// 获得域名解析信息
 		res := domain.DomainRecordsInfo(info.Domain)
@@ -63,7 +55,7 @@ func main() {
 				if v.Value != IP {
 					recordID = v.RecordId
 				} else {
-					f.WriteString("\t域名[" + info.RR + "." + info.Domain+"]指向IP未改变,无需重新解析!\r\n")
+					mylog.Record("\t域名[" + info.RR + "." + info.Domain+"]指向IP未改变,无需重新解析!\r\n")
 					goto STOPTHIS
 				}
 				break
@@ -75,13 +67,13 @@ func main() {
 			success := domain.UpdateDomainRecord(info.RR, recordID, IP)
 
 			if success {
-				f.WriteString("\t[" + info.RR + "." + info.Domain+"] 更新成功!\r\n")
+				mylog.Record("\t[" + info.RR + "." + info.Domain+"] 更新成功!\r\n")
 			} else {
-				f.WriteString("\t[" + info.RR + "." + info.Domain+"] 更新失败!\r\n")
+				mylog.Record("\t[" + info.RR + "." + info.Domain+"] 更新失败!\r\n")
 			}
 
 		} else {
-			f.WriteString("\t[" + info.RR + "." + info.Domain+"] 的解析记录未找到!\r\n")
+			mylog.Record("\t[" + info.RR + "." + info.Domain+"] 的解析记录未找到!\r\n")
 		}
 	STOPTHIS:
 	}
