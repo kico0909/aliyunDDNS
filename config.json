@@ -5,10 +5,6 @@
     {
       "Domain": "chunkding.com",
       "RR": "home"
-    },
-    {
-      "Domain": "chunkding.com",
-      "RR": "router"
     }
   ]
 }

@@ -7,13 +7,13 @@ import (
 	"ip"
 	"log"
 	"os"
-	//"time"
 	"time"
+	"strconv"
 )
 
 const (
 	RunLog        = "./runLog.txt"
-	RunLogMaxSize = 1024
+	RunLogMaxSize = 4096
 )
 
 func main() {
@@ -40,12 +40,19 @@ func main() {
 		os.Exit(99)
 	}
 	defer f.Close()
-	f.WriteString(time.Now().Format("2006-01-02 15:04:05") + "\r\n")
+	f.WriteString(time.Now().Format("2006-01-02 15:04:05") + " 触发更新!\r\n")
 
 	// 获得外网IP
 	IP := ip.External()
 
+	f.WriteString("\t当前解析IP[" +IP+"]\r\n")
+
+	f.WriteString("\t配置文件长度 [ "+strconv.FormatInt(int64(len(conf.DdnsConf)), 10)+" ]\r\n")
+
 	for _, info := range conf.DdnsConf {
+
+		//f.WriteString("\t当前解析IP[" +IP+"]\r\n")
+
 		// 获得域名解析信息
 		res := domain.DomainRecordsInfo(info.Domain)
 
@@ -56,7 +63,7 @@ func main() {
 				if v.Value != IP {
 					recordID = v.RecordId
 				} else {
-					//log.Println("域名[" + info.RR + "." + info.Domain+"]指向IP未改变,无需重新解析!")
+					f.WriteString("\t域名[" + info.RR + "." + info.Domain+"]指向IP未改变,无需重新解析!\r\n")
 					goto STOPTHIS
 				}
 				break
@@ -65,14 +72,16 @@ func main() {
 
 		if len(recordID) > 0 {
 			// 修改域名解析记录
-			if domain.UpdateDomainRecord(info.RR, recordID, IP) {
-				//log.Println("[" + info.RR + "." + info.Domain+"] 更新成功!")
-			} else {
-				//log.Println("[" + info.RR + "." + info.Domain+"] 更新失败!")
-			}
-		} else {
+			success := domain.UpdateDomainRecord(info.RR, recordID, IP)
 
-			//log.Println("[" + info.RR + "." + info.Domain+"] 的解析记录未找到!")
+			if success {
+				f.WriteString("\t[" + info.RR + "." + info.Domain+"] 更新成功!\r\n")
+			} else {
+				f.WriteString("\t[" + info.RR + "." + info.Domain+"] 更新失败!\r\n")
+			}
+
+		} else {
+			f.WriteString("\t[" + info.RR + "." + info.Domain+"] 的解析记录未找到!\r\n")
 		}
 	STOPTHIS:
 	}
