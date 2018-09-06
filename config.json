@@ -1,6 +1,11 @@
 {
   "appid": "LTAIP0T47hNPvDVz",
   "appsecret": "gcTAoNHXUpjjB4eKb8ZzOhjI6mdfl9",
+  "log":{
+    "path": "./log/",
+    "fileName": "log",
+    "fileMaxSize": 1048576
+  },
   "DdnsConf": [
     {
       "Domain": "chunkding.com",

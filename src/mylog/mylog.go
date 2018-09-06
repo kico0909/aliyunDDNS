@@ -9,11 +9,8 @@ import (
 
 var f *os.File
 var maxSize int64
-
 var path string
 var filename string
-
-
 
 func SetLogMaxSize(size int64){
 	maxSize = size
@@ -32,9 +29,12 @@ func LogStart()bool{
 	RunLogfileSize, err := os.Stat( fullPath + ".txt" )
 
 	if err != nil {
+NoPathReturn:
 		f, err = os.Create(fullPath+".txt")
 		if err != nil {
 			log.Println(err)
+			os.Mkdir(path, 0777)
+			goto NoPathReturn
 			return false
 		}
 		return true
@@ -66,7 +66,7 @@ func LogStart()bool{
 }
 
 func Record( log string){
-	f.WriteString(log)
+	f.WriteString(log+"\r\n")
 }
 
 func LogStop(){

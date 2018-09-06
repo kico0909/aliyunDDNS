@@ -1,6 +1,14 @@
 {
   "appid": "testid",
+
   "appsecret": "testSecret",
+
+  "log":{
+    "path": "保存日志的路径",
+    "fileName": "保存的日志的文件名",
+    "fileMaxSize": "单个日志文件的文件体积,超体积则切分文件,[ int64 值 ]"
+  },
+
   "ddnsProfile": [
     {
       "Domain": "domain.com",

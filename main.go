@@ -11,12 +11,6 @@ import (
 	"time"
 )
 
-const (
-	LogDir        = "./log/"
-	LogFileName   = "log"
-	RunLogMaxSize = 1024 * 1024
-)
-
 func main() {
 	// 获得配置信息
 	conf := configGet()
@@ -25,22 +19,22 @@ func main() {
 	domain := domain.New(conf.Appid, conf.Appsecret)
 
 	// 设置日志的单文件尺寸
-	mylog.SetLogMaxSize(RunLogMaxSize)
+	mylog.SetLogMaxSize(conf.Log.FileMaxSize)
 
 	// 设置日志位置
-	mylog.SetLogPath(LogDir, LogFileName)
+	mylog.SetLogPath(conf.Log.Path, conf.Log.FileName)
 
 	// 启动日志
 	mylog.LogStart()
 
 	nowDate := time.Now().Format("\r\n 2006-01-02 15:04:05")
 
-	mylog.Record(nowDate + " 触发更新!\r\n")
+	mylog.Record(nowDate + " 触发更新!")
 
 	// 获得外网IP
 	IP := ip.External()
 
-	mylog.Record("\t当前解析IP[" + IP + "]\r\n\t配置文件长度 [ " + strconv.FormatInt(int64(len(conf.DdnsConf)), 10) + " ]\r\n")
+	mylog.Record("\t当前解析IP[" + IP + "]\r\n\t配置文件长度 [ " + strconv.FormatInt(int64(len(conf.DdnsConf)), 10) + " ]")
 
 	for _, info := range conf.DdnsConf {
 
@@ -54,7 +48,7 @@ func main() {
 				if v.Value != IP {
 					recordID = v.RecordId
 				} else {
-					mylog.Record("\t域名[" + info.RR + "." + info.Domain + "]指向IP未改变,无需重新解析!\r\n")
+					mylog.Record("\t域名[" + info.RR + "." + info.Domain + "]指向IP未改变,无需重新解析!")
 					goto STOPTHIS
 				}
 				break
@@ -66,13 +60,13 @@ func main() {
 			success := domain.UpdateDomainRecord(info.RR, recordID, IP)
 
 			if success {
-				mylog.Record("\t[" + info.RR + "." + info.Domain + "] 更新成功!\r\n")
+				mylog.Record("\t[" + info.RR + "." + info.Domain + "] 更新成功!")
 			} else {
-				mylog.Record("\t[" + info.RR + "." + info.Domain + "] 更新失败!\r\n")
+				mylog.Record("\t[" + info.RR + "." + info.Domain + "] 更新失败!")
 			}
 
 		} else {
-			mylog.Record("\t[" + info.RR + "." + info.Domain + "] 的解析记录未找到!\r\n")
+			mylog.Record("\t[" + info.RR + "." + info.Domain + "] 的解析记录未找到!")
 		}
 	STOPTHIS:
 		mylog.LogStop()
@@ -81,17 +75,23 @@ func main() {
 }
 
 type ConfigType struct {
-	Appid     string
-	Appsecret string
-	DdnsConf  []configTypeChip
-}
-type configTypeChip struct {
-	Domain string
-	RR     string
+	Appid     string	`json:"appid"`
+	Appsecret string	`json:"appsecret"`
+	Log struct{
+		Path	string	`json:"path"`
+		FileName string	`json:"fileName"`
+		FileMaxSize int64	`json:"fileMaxSize"`
+	}	`json:"log"`
+	DdnsConf  []struct {
+		Domain string	`json:"domain"`
+		RR     string	`json:"rr"`
+	}	`json:"ddnsConf"`
 }
 
 func configGet() ConfigType {
+
 	var res ConfigType
+
 	fc, err := ioutil.ReadFile("./config.json")
 
 	if err != nil {
